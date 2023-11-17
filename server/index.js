@@ -1,0 +1,81 @@
+const { Server } = require("socket.io");
+
+const { createUserArray } = require("./helpers/createUserArray.js");
+
+const io = new Server({
+  cors: {
+    origin: ["http://localhost:3000", "https://3ea1-74-51-156-156.ngrok-free.app"]
+  }
+})
+
+let users = {};
+const board = [
+  [0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0]
+];
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.on('player-joined', (name) => {
+    console.log(`${name} has joined`);
+
+    users[socket.id] = {
+      name,
+      points: 0
+    };
+
+    let userArray = createUserArray(users);
+
+    console.log('All Users', userArray)
+
+    io.emit('updatePlayerList', userArray);
+    socket.emit('onlyUpdateBoard', board);
+  })
+
+  socket.on('givePoints', (points, name) => {
+    for (key in users) {
+      if (users[key].name === name) {
+        users[key].points += Number(points);
+        break;
+      }
+    }
+    let userArray = createUserArray(users);
+    io.emit('updatePlayerList', userArray);
+  })
+
+  socket.on('showAnswer', (coords) => {
+    let [row, col] = coords;
+    board[row][col] = 1;
+    io.emit('showAnswer');
+  })
+
+  socket.on('openQuestion', (coords => {
+    let [row, col] = coords;
+
+    io.emit('updateBoard', board, coords);
+  }))
+
+  socket.on('player-disconnected', (id) => {
+    console.log(`User disconnected: ${socket.id}`);
+    delete users[socket.id];
+
+    let userArray = createUserArray(users);
+
+    socket.disconnect(true);
+    io.emit('updatePlayerList', userArray);
+  })
+
+  socket.on('player-clicked', (name) => {
+    io.emit('player-clicked', name);
+  })
+
+  socket.on('button-reset', () => {
+    io.emit('button-reset');
+  })
+})
+
+io.listen(3001);

@@ -8,7 +8,7 @@ import PlayerList from '../../components/PlayerList.js'
 import GameBoard from '../../components/GameBoard.js'
 import Question from '../../components/Question.js'
 
-const socket = io("http://localhost:3001");
+const socket = io("https://c9b8-74-51-156-156.ngrok-free.app");
 
 export default function Game() {
   const name = useSearchParams().get('playerName');

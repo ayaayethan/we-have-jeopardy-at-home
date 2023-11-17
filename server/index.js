@@ -1,10 +1,18 @@
 const { Server } = require("socket.io");
+const express = require("express");
+const app = express();
+const  http = require("http");
+const cors = require("cors");
+
+app.use(cors());
+
+const server = http.createServer(app);
 
 const { createUserArray } = require("./helpers/createUserArray.js");
 
-const io = new Server({
+const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://3ea1-74-51-156-156.ngrok-free.app"]
+    origin: ["https://9cc9-74-51-156-156.ngrok-free.app", "http://localhost:3000"]
   }
 })
 
@@ -78,4 +86,6 @@ io.on("connection", (socket) => {
   })
 })
 
-io.listen(3001);
+server.listen(3001, () => {
+  console.log("Server connected on port 3001");
+});
